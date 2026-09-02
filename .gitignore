@@ -216,3 +216,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project-specific: NBA win probability
+data/raw/
+data/interim/
+data/processed/
+
+models/**/*.pt
+models/**/*.pkl
+models/**/*.joblib
+
+.DS_Store
+Thumbs.db
