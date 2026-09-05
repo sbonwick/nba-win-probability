@@ -1,8 +1,11 @@
 from pathlib import Path
 from src.config import RAW_DIR
 
+def normalize_game_type(game_type: str) -> str:
+    return game_type.strip().lower().replace(" ", "_")
+
 def gameIDPath(season:str,game_type:str) -> Path:
-    return Path(RAW_DIR/"game_ids"/f"{season}_{game_type}.csv")
+    return Path(RAW_DIR/"game_ids"/f"{season}_{normalize_game_type(game_type)}.csv")
 
 def pbpPath(season:str,game_id:str):
     return Path(RAW_DIR/"pbp"/season/f"{game_id}.json")
