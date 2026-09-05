@@ -20,6 +20,21 @@ BOX_SCORE_COLUMNS = [
     "WON",
 ]
 
+SEASONS = [
+    "2014-15",
+    "2015-16",
+    "2016-17",
+    "2017-18",
+    "2018-19",
+    "2019-20",
+    "2020-21",
+    "2021-22",
+    "2022-23",
+    "2023-24",
+]
+
+GAME_TYPES = ["Regular Season", "Playoffs"]
+
 logger = get_logger(__name__)
 
 
@@ -40,7 +55,7 @@ def main():
     parser.add_argument(
         "--season-type",
         required=True,
-        choices=["Regular Season", "Playoffs"],
+        choices=GAME_TYPES,
     )
     args = parser.parse_args()
 
