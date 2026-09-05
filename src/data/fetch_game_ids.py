@@ -53,10 +53,8 @@ def main() -> None:
     data = fetch_game_ids_from_api(season, season_type)
     logger.info("Fetched %d raw rows from LeagueGameFinder", len(data))
 
-    data = clean_game_ids_dataframe(data, season, season_type)
-    logger.info("Cleaned data down to %d unique games", len(data))
-
     validate_game_ids_dataframe(data)
+    data = clean_game_ids_dataframe(data, season, season_type)
     save_game_ids_dataframe(data, path)
 
     logger.info(
@@ -89,7 +87,6 @@ def clean_game_ids_dataframe(
 
 
 def validate_game_ids_dataframe(df: pd.DataFrame) -> None:
-    logger.info("Validating cleaned game IDs DataFrame")
 
     if df.empty:
         raise ValueError("Empty DataFrame")
