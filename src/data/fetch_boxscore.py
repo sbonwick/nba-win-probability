@@ -8,6 +8,7 @@ import pandas as pd
 import src.data.cache as cache
 from src.utils.logging_utils import get_logger
 from nba_api.stats.endpoints import BoxScoreSummaryV3
+from data.data_constants import GAME_TYPES, SEASONS
 
 BOX_SCORE_COLUMNS = [
     "GAME_ID",
@@ -19,21 +20,6 @@ BOX_SCORE_COLUMNS = [
     "IS_HOME",
     "WON",
 ]
-
-SEASONS = [
-    "2014-15",
-    "2015-16",
-    "2016-17",
-    "2017-18",
-    "2018-19",
-    "2019-20",
-    "2020-21",
-    "2021-22",
-    "2022-23",
-    "2023-24",
-]
-
-GAME_TYPES = ["Regular Season", "Playoffs"]
 
 logger = get_logger(__name__)
 
@@ -48,59 +34,157 @@ def valid_season(value: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Fetch box score summary data for a specific game"
+        description="Fetch box score data for one or more games"
     )
-    parser.add_argument("--game-id", required=True, type=str)
-    parser.add_argument("--season", required=True, type=valid_season)
+    parser.add_argument("--game-id", nargs="+", required=False, type=str)
+    parser.add_argument("--season", nargs="+", required=False, type=valid_season)
     parser.add_argument(
         "--season-type",
-        required=True,
+        nargs="+",
+        required=False,
         choices=GAME_TYPES,
     )
     args = parser.parse_args()
 
-    game_id = args.game_id
-    season = args.season
-    game_type = args.season_type
+    if args.game_id:
+        if not args.season or not args.season_type:
+            raise ValueError(
+                "If --game-id is provided, both --season and --season-type must also be specified."
+            )
 
-    logger.info("Starting box score fetch for game_id=%s", game_id)
+        if len(args.season) != 1 or len(args.season_type) != 1:
+            raise ValueError(
+                "When --game-id is provided, exactly one --season and one --season-type must be specified."
+            )
 
-    path = cache.boxScorePath(season=season, game_id=game_id, game_type=game_type)
+        game_ids_to_fetch = args.game_id
+        seasons_to_fetch = args.season
+        season_types_to_fetch = args.season_type
 
-    if cache.isCached(path):
-        logger.info("Skipping fetch because cached file already exists at %s", path)
-        return
+        validate_game_ids_for_season(
+            game_ids_to_fetch,
+            seasons_to_fetch[0],
+            season_types_to_fetch[0],
+        )
+    else:
+        if not args.season or not args.season_type:
+            raise ValueError(
+                "If --game-id is not provided, both --season and --season-type must be specified."
+            )
+        seasons_to_fetch = args.season
+        season_types_to_fetch = args.season_type
 
-    data = fetch_box_score_from_api(game_id)
-    logger.info("Fetched %d raw rows from BoxScoreSummaryV2", len(data))
+    all_failures = []
 
-    data = clean_box_score_dataframe(data)
+    if args.game_id:
+        for season in seasons_to_fetch:
+            for game_type in season_types_to_fetch:
+                for game_id in game_ids_to_fetch:
+                    failure = process_box_score(game_id, season, game_type)
+                    if failure:
+                        all_failures.append(failure)
+    else:
+        for season in seasons_to_fetch:
+            for game_type in season_types_to_fetch:
+                failures = []
+                game_ids_to_fetch = process_game_ids(season, game_type)
 
-    validate_box_score_dataframe(data, game_id)
-    save_box_score_dataframe(data, path)
+                for game_id in game_ids_to_fetch:
+                    failure = process_box_score(game_id, season, game_type)
+                    if failure:
+                        failures.append(failure)
+                        all_failures.append(failure)
+
+                if failures:
+                    failure_df = pd.DataFrame(failures)
+                    failure_path = cache.boxScoreFailurePath(
+                        season=season,
+                        game_type=game_type,
+                    )
+                    io.write_df_csv(failure_df, failure_path)
+
+    if all_failures:
+        logger.error("Completed with %d failures", len(all_failures))
+
+
+def process_box_score(game_id: str, season: str, game_type: str) -> dict | None:
+    try:
+        path = cache.boxScorePath(
+            season=season,
+            game_id=game_id,
+            game_type=game_type,
+        )
+
+        if cache.isCached(path):
+            return None
+
+        data = fetch_box_score_from_api(game_id)
+        validate_box_score_dataframe(data, game_id)
+        data = clean_box_score_dataframe(data)
+        save_box_score_dataframe(data, path)
+
+        logger.info(
+            "Saved box score for game_id=%s, season=%s, game_type=%s",
+            game_id,
+            season,
+            game_type,
+        )
+        return None
+
+    except Exception as e:
+        logger.error(
+            "Failed box score fetch for game_id=%s, season=%s, game_type=%s: %s",
+            game_id,
+            season,
+            game_type,
+            str(e),
+        )
+        return {
+            "game_id": game_id,
+            "season": season,
+            "season_type": game_type,
+            "error_message": str(e),
+        }
 
 
 def fetch_box_score_from_api(game_id: str) -> pd.DataFrame:
     reader = BoxScoreSummaryV3(game_id=game_id)
 
-    game_summary = reader.game_summary.get_data_frame()   
-    line_score = reader.line_score.get_data_frame()  
+    game_summary = reader.game_summary.get_data_frame()
+    line_score = reader.line_score.get_data_frame()
 
     home_id = game_summary.loc[0, "homeTeamId"]
 
     line_score["IS_HOME"] = line_score["teamId"] == home_id
     line_score["WON"] = line_score["score"] == line_score["score"].max()
 
-    line_score = line_score.rename(columns={
-        "gameId": "GAME_ID",
-        "teamId": "TEAM_ID",
-        "teamTricode": "TEAM_ABBREVIATION",
-        "score": "PTS",
-        "teamWins": "WINS",
-        "teamLosses": "LOSSES",
-    })
+    line_score = line_score.rename(
+        columns={
+            "gameId": "GAME_ID",
+            "teamId": "TEAM_ID",
+            "teamTricode": "TEAM_ABBREVIATION",
+            "score": "PTS",
+            "teamWins": "WINS",
+            "teamLosses": "LOSSES",
+        }
+    )
 
     return line_score
+
+
+def validate_game_ids_for_season(
+    game_ids: list[str],
+    season: str,
+    season_type: str,
+) -> None:
+    valid_game_ids = set(process_game_ids(season, season_type))
+    invalid_game_ids = [game_id for game_id in game_ids if game_id not in valid_game_ids]
+
+    if invalid_game_ids:
+        raise ValueError(
+            f"The following game IDs are not valid for season={season}, "
+            f"season_type={season_type}: {invalid_game_ids}"
+        )
 
 
 def clean_box_score_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -126,8 +210,17 @@ def validate_box_score_dataframe(df: pd.DataFrame, game_id: str) -> None:
 
 
 def save_box_score_dataframe(df: pd.DataFrame, output_path: Path) -> None:
-    logger.info("Saving cleaned box score DataFrame to %s", output_path)
     io.write_df_csv(df, output_path)
+
+
+def process_game_ids(season: str, season_type: str) -> list[str]:
+    path = cache.gameIDPath(season, season_type)
+    if not cache.isCached(path):
+        raise ValueError(
+            f"Game ID file does not exist for season {season} and type {season_type}. Expected at {path}"
+        )
+    df = io.read_csv(path)
+    return df["GAME_ID"].astype(str).tolist()
 
 
 if __name__ == "__main__":

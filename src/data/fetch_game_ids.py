@@ -9,6 +9,7 @@ from nba_api.stats.endpoints import LeagueGameFinder
 import src.data.cache as cache
 import src.utils.io as io
 from src.utils.logging_utils import get_logger
+from data.data_constants import GAME_TYPES, SEASONS
 
 REQUIRED_GAME_ID_COLUMNS = [
     "GAME_ID",
@@ -17,22 +18,6 @@ REQUIRED_GAME_ID_COLUMNS = [
     "SEASON_ID",
 ]
 
-SEASONS = [
-    "2014-15",
-    "2015-16",
-    "2016-17",
-    "2017-18",
-    "2018-19",
-    "2019-20",
-    "2020-21",
-    "2021-22",
-    "2022-23",
-    "2023-24",
-    "2024-25",
-    "2025-26"
-]
-
-GAME_TYPES = ["Regular Season", "Playoffs"]
 
 logger = get_logger(__name__)
 logger.setLevel(logging.ERROR)
@@ -50,21 +35,22 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Fetch game IDs for a season with season type"
     )
-    parser.add_argument("--season", required=False, type=valid_season)
+    parser.add_argument("--season", required=False,nargs='+', type=valid_season)
     parser.add_argument(
         "--season-type",
+        nargs="+",
         required=False,
         choices=GAME_TYPES,
     )
     args = parser.parse_args()
 
     if args.season:
-        seasons_to_fetch = [args.season]
+        seasons_to_fetch = args.season
     else:
         seasons_to_fetch = SEASONS
 
     if args.season_type:
-        season_type_fetch = [args.season_type]
+        season_type_fetch = args.season_type
     else:
         season_type_fetch = GAME_TYPES
 

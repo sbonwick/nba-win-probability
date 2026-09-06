@@ -13,8 +13,11 @@ def pbpPath(season:str,game_id:str,game_type:str):
 def boxScorePath(season:str,game_id:str,game_type:str):
     return Path(RAW_DIR/"box_scores"/season/normalize_game_type(game_type)/f"{game_id}.csv")
 
-def failurePath(season:str):
-    return Path(RAW_DIR/"pbp"/"failures"/f"{season}_failures.csv")
+def pbpFailurePath(season:str, game_type:str):
+    return Path(RAW_DIR/"failures"/"pbp"/season/normalize_game_type(game_type)/f"{season}_failures.csv")
+
+def boxScoreFailurePath(season:str, game_type:str):
+    return Path(RAW_DIR/"failures"/"box_scores"/season/normalize_game_type(game_type)/f"{season}_failures.csv")
 
 def gameIDFileexists(season:str,season_type:str)->bool:
     return gameIDPath(season,season_type).exists()
