@@ -35,14 +35,14 @@ def write_df_csv(df: pd.DataFrame,path:Path):
     except OSError as e:
         raise ValueError(f"Error writing DataFrame as CSV: {e}")
 
-def read_csv(path):
+def read_csv(path, **kwargs):
     if not path.exists():
         raise FileNotFoundError(f"CSV file not found at {path}")
     if not path.is_file():
         raise ValueError(f"Path is not a file: {path}")
     
     try:
-        return pd.read_csv(path)
+        return pd.read_csv(path, **kwargs)
     except Exception as e:
-        raise ValueError(f"Error writing CSV at {path} to dataFrame: {e}")
+        raise ValueError(f"Error reading CSV at {path} to dataFrame: {e}")
     

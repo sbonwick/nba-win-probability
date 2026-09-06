@@ -8,7 +8,7 @@ import pandas as pd
 import src.data.cache as cache
 from src.utils.logging_utils import get_logger
 from nba_api.stats.endpoints import BoxScoreSummaryV3
-from data.data_constants import GAME_TYPES, SEASONS
+from src.data.data_constants import GAME_TYPES, SEASONS
 
 BOX_SCORE_COLUMNS = [
     "GAME_ID",
@@ -67,12 +67,8 @@ def main():
             season_types_to_fetch[0],
         )
     else:
-        if not args.season or not args.season_type:
-            raise ValueError(
-                "If --game-id is not provided, both --season and --season-type must be specified."
-            )
-        seasons_to_fetch = args.season
-        season_types_to_fetch = args.season_type
+        seasons_to_fetch = args.season if args.season else SEASONS
+        season_types_to_fetch = args.season_type if args.season_type else GAME_TYPES
 
     all_failures = []
 
@@ -219,8 +215,8 @@ def process_game_ids(season: str, season_type: str) -> list[str]:
         raise ValueError(
             f"Game ID file does not exist for season {season} and type {season_type}. Expected at {path}"
         )
-    df = io.read_csv(path)
-    return df["GAME_ID"].astype(str).tolist()
+    df = io.read_csv(path, dtype={"GAME_ID": str})
+    return df["GAME_ID"].tolist()
 
 
 if __name__ == "__main__":
