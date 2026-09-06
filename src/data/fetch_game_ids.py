@@ -9,7 +9,7 @@ from nba_api.stats.endpoints import LeagueGameFinder
 import src.data.cache as cache
 import src.utils.io as io
 from src.utils.logging_utils import get_logger
-from data.data_constants import GAME_TYPES, SEASONS
+from src.data.data_constants import GAME_TYPES, SEASONS
 
 REQUIRED_GAME_ID_COLUMNS = [
     "GAME_ID",
@@ -18,9 +18,8 @@ REQUIRED_GAME_ID_COLUMNS = [
     "SEASON_ID",
 ]
 
-
 logger = get_logger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.INFO)
 
 
 def valid_season(value: str) -> str:
@@ -35,7 +34,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Fetch game IDs for a season with season type"
     )
-    parser.add_argument("--season", required=False,nargs='+', type=valid_season)
+    parser.add_argument("--season", required=False, nargs="+", type=valid_season)
     parser.add_argument(
         "--season-type",
         nargs="+",
@@ -59,41 +58,36 @@ def main() -> None:
     for season in seasons_to_fetch:
         for season_type in season_type_fetch:
             try:
-                logger.info(
-                    "Starting game ID fetch for season=%s, season_type=%s",
-                    season,
-                    season_type,
-                )
-
                 path = cache.gameIDPath(season, season_type)
 
                 if cache.isCached(path):
                     logger.info(
-                        "Skipping fetch because cached file already exists at %s",
+                        "SKIP | season=%s | season_type=%s | path=%s",
+                        season,
+                        season_type,
                         path,
                     )
                     continue
 
                 data = fetch_game_ids_from_api(season, season_type)
-                logger.info("Fetched %d raw rows from LeagueGameFinder", len(data))
-
                 validate_game_ids_dataframe(data)
                 data = clean_game_ids_dataframe(data, season, season_type)
                 save_game_ids_dataframe(data, path)
 
                 logger.info(
-                    "Saved %d game IDs for season=%s, season_type=%s to %s",
-                    len(data),
+                    "SUCCESS | season=%s | season_type=%s | rows=%d | path=%s",
                     season,
                     season_type,
+                    len(data),
                     path,
                 )
 
             except Exception as e:
-                logger.exception(
-                    "Failed game ID fetch for season=%s, season_type=%s",
+                logger.error(
+                    "FAILURE | season=%s | season_type=%s | error=%s",
                     season,
                     season_type,
+                    str(e),
                 )
                 failures.append(
                     {
@@ -109,7 +103,6 @@ def main() -> None:
 
 
 def fetch_game_ids_from_api(season: str, season_type: str) -> pd.DataFrame:
-    logger.info("Requesting LeagueGameFinder data from nba_api")
     finder = LeagueGameFinder(
         player_or_team_abbreviation="T",
         season_nullable=season,
@@ -122,14 +115,12 @@ def fetch_game_ids_from_api(season: str, season_type: str) -> pd.DataFrame:
 def clean_game_ids_dataframe(
     df: pd.DataFrame, season: str, season_type: str
 ) -> pd.DataFrame:
-    logger.info("Cleaning game IDs DataFrame")
     df = df.drop_duplicates(subset="GAME_ID")
     df = df[REQUIRED_GAME_ID_COLUMNS]
     return df
 
 
 def validate_game_ids_dataframe(df: pd.DataFrame) -> None:
-
     if df.empty:
         raise ValueError("Empty DataFrame")
 
@@ -146,7 +137,6 @@ def validate_game_ids_dataframe(df: pd.DataFrame) -> None:
 
 
 def save_game_ids_dataframe(df: pd.DataFrame, output_path: Path) -> None:
-    logger.info("Saving cleaned game IDs DataFrame to %s", output_path)
     io.write_df_csv(df, output_path)
 
 
