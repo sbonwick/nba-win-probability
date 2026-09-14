@@ -36,12 +36,12 @@ def add_foul_features(df: pd.DataFrame) -> None:
             away_in_penalty = False
 
         elif is_foul_event(row) and is_countable_team_foul(row):
-            if get_foul_committing_side(row) == "home":
+            if get_foul_committing_side(row) == 1:
                 current_home_fouls += 1
                 if current_home_fouls >= foul_limit:
                     home_in_penalty = True
 
-            elif get_foul_committing_side(row) == "away":
+            elif get_foul_committing_side(row) == 0:
                 current_away_fouls += 1
                 if current_away_fouls >= foul_limit:
                     away_in_penalty = True
@@ -60,5 +60,5 @@ def is_foul_event(row: pd.Series) -> bool:
     return pd.notna(row["actionType"]) and row["actionType"] == "Foul"
 
 
-def get_foul_committing_side(row: pd.Series) -> str:
-    return row["event_side"]
+def get_foul_committing_side(row: pd.Series) -> int | None:
+    return row["is_home_event"]

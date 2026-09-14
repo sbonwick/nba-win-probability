@@ -13,19 +13,19 @@ def prepare_tables(game_id: str, season_type: str, season: str):
     pbp[season_type] = season_type
 
 def get_event_side(df: pd.DataFrame) -> None:
-    def event_side_helper(row: pd.Series) -> str:
+    def event_side_helper(row: pd.Series) -> int | None:
         home_id = row["home_team_id"]
         away_id = row["away_team_id"]
         if row["team_id"] == home_id or row["player_id"] == home_id:
-            return "home"
+            return 1
         elif row["team_id"] == away_id or row["player_id"] == away_id:
-            return "away"
-        return "neutral"
-    df["event_side"] = df.apply(event_side_helper,axis=1)
+            return 0
+        return None
+    df["is_home_event"] = df.apply(event_side_helper, axis=1)
 
 def add_time_features(df: pd.DataFrame) -> None:
-    df["time_elapsed"] = df.apply(lambda row: time_utils.get_gametime_elapsed(row["period"],row["clock"]),axis=1)
-    df["time_remaining"] = df.apply(lambda row: time_utils.get_gametime_remaining(row["period"],row["clock"]),axis=1)
+    df["time_elapsed"] = df.apply(lambda row: time_utils.get_gametime_elapsed(row["period"], row["clock"]), axis=1)
+    df["time_remaining"] = df.apply(lambda row: time_utils.get_gametime_remaining(row["period"], row["clock"]), axis=1)
 
 def process_scores(df: pd.DataFrame) -> None:
     df["home_score"] = pd.to_numeric(df["scoreHome"],errors= "coerce").ffill().fillna(0)

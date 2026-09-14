@@ -13,32 +13,32 @@ def add_timeouts(df: pd.DataFrame, era: str) -> None:
 
     for index,row in df.iterrows():
         if row["period"] != period:
-            period = row[period]
+            period = row["period"]
             if period >= 5:
                 home_timeouts = home_timeouts + 2 if modern else home_timeouts + 1
                 away_timeouts = away_timeouts + 2 if modern else away_timeouts + 1
         if is_team_timeout(row):
-            if row["event_side"] == "home":
+            if row["is_home_event"] == 1:
                 home_timeouts -= 1
-            elif row["event_side"] == "away":
+            elif row["is_home_event"] == 0:
                 away_timeouts -= 1
         df.loc[index,"home_timeouts_remaining"] = home_timeouts
         df.loc[index,"away_timeouts_remaining"] = away_timeouts
         
 
 def is_team_timeout(row:pd.Series) -> bool:
-    return pd.notna(row["actionType"]) and row["subType"] in ["Regular,Short"]
+    return pd.notna(row["actionType"]) and row["subType"] in ["Regular","Short"]
 
-def parse_timeouts_used(desc: str) -> int:
-    _,data = desc.split("(")
-    temp = ""
-    used = 0
-    for char in data:
-        if char.isnumeric():
-            temp += char
-            continue
-        if temp:
-            used += int(temp)
-            temp = ""
-    return used
+# def parse_timeouts_used(desc: str) -> int:
+#     _,data = desc.split("(")
+#     temp = ""
+#     used = 0
+#     for char in data:
+#         if char.isnumeric():
+#             temp += char
+#             continue
+#         if temp:
+#             used += int(temp)
+#             temp = ""
+#     return used
 
