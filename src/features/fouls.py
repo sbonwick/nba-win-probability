@@ -1,14 +1,22 @@
+import re
+
 import pandas as pd
 
-COUNTABLE_FOULS = [
-    "Shooting",
-    "Personal",
-    "Loose Ball",
-    "Personal Take",
-    "Offensive Charge",
-    "Away From Play",
-    "Inbound",
-]
+COUNTABLE_FOULS = {
+    "shooting",
+    "personal",
+    "loose ball",
+    "personal take",
+    "away from play",
+    "inbound",
+    "flagrant type 1",
+    "flagrant type 2",
+    "punching",
+    "clear path foul",
+}
+
+PENALTY_TAG_PATTERN = re.compile(r"\(P\d+\.PN\)")
+
 
 def add_foul_features(df: pd.DataFrame) -> None:
     df["home_team_fouls_period"] = 0
@@ -22,11 +30,9 @@ def add_foul_features(df: pd.DataFrame) -> None:
     home_in_penalty = False
     away_in_penalty = False
 
-    df.reset_index(drop=True,inplace=True)
+    df.reset_index(drop=True, inplace=True)
 
     for index, row in df.iterrows():
-        foul_limit = 5 if row["period"] <= 4 else 4
-
         if row["period"] != current_period:
             current_period = row["period"]
             current_home_fouls = 0
@@ -34,15 +40,19 @@ def add_foul_features(df: pd.DataFrame) -> None:
             home_in_penalty = False
             away_in_penalty = False
 
-        elif is_foul_event(row) and is_countable_team_foul(row):
-            if get_foul_committing_side(row) == 1:
-                current_home_fouls += 1
-                if current_home_fouls >= foul_limit:
-                    home_in_penalty = True
+        if is_foul_event(row):
+            side = get_foul_committing_side(row)
 
-            elif get_foul_committing_side(row) == 0:
-                current_away_fouls += 1
-                if current_away_fouls >= foul_limit:
+            if is_countable_team_foul(row):
+                if side == 1:
+                    current_home_fouls += 1
+                elif side == 0:
+                    current_away_fouls += 1
+
+            if is_penalty_tagged(row):
+                if side == 1:
+                    home_in_penalty = True
+                elif side == 0:
                     away_in_penalty = True
 
         df.loc[index, "home_team_fouls_period"] = current_home_fouls
@@ -52,12 +62,20 @@ def add_foul_features(df: pd.DataFrame) -> None:
 
 
 def is_countable_team_foul(row: pd.Series) -> bool:
-    return pd.notna(row["subType"]) and row["subType"] in COUNTABLE_FOULS
+    if pd.isna(row["subType"]):
+        return False
+    return row["subType"].strip().lower() in COUNTABLE_FOULS
 
 
 def is_foul_event(row: pd.Series) -> bool:
     return pd.notna(row["actionType"]) and row["actionType"] == "Foul"
 
 
-def get_foul_committing_side(row: pd.Series) -> int | None:
+def is_penalty_tagged(row: pd.Series) -> bool:
+    return pd.notna(row["description"]) and bool(
+        PENALTY_TAG_PATTERN.search(row["description"])
+    )
+
+
+def get_foul_committing_side(row: pd.Series) -> float | None:
     return row["is_home_event"]
