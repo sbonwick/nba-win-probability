@@ -21,6 +21,14 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     add_possession(pbp)
     add_timeout_features(pbp,season)
     pbp.drop(["actionNumber","clock","teamId","personId","actionType","subType","description","is_home_event","home_team_id","away_team_id"], axis=1, inplace=True)
+    home_games = pbp["home_wins"] + pbp["home_losses"]
+    away_games = pbp["away_wins"] + pbp["away_losses"]
+
+    pbp["home_win_pct"] = (pbp["home_wins"] / home_games).where(home_games > 0, 0.5)
+    pbp["away_win_pct"] = (pbp["away_wins"] / away_games).where(away_games > 0, 0.5)
+
+    pbp["win_pct_diff"] = pbp["home_win_pct"] - pbp["away_win_pct"]
+    pbp["is_overtime"] = (pbp["period"] > 4)
     pbp = pbp.astype({
     "period":                      "int8",
     "scoreHome":                   "int16",
@@ -41,6 +49,10 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     "home_timeouts_remaining":     "int8",
     "away_timeouts_remaining":     "int8",
     "gameId":                      "str",
+    "home_win_pct":                "float32",
+    "away_win_pct":                "float32",
+    "win_pct_diff":                "float32",
+    "is_overtime":                 "bool",
     })
     pbp["home_possession"] = pbp["home_possession"].astype("boolean")  # nullable bool
     return pbp
