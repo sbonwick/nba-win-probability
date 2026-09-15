@@ -20,7 +20,7 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     add_foul_features(pbp)
     add_possession(pbp)
     add_timeout_features(pbp,season)
-    pbp.drop(["gameId","actionNumber","clock","teamId","personId","actionType","subType","description","is_home_event","home_team_id","away_team_id"], axis=1, inplace=True)
+    pbp.drop(["actionNumber","clock","teamId","personId","actionType","subType","description","is_home_event","home_team_id","away_team_id"], axis=1, inplace=True)
     pbp = pbp.astype({
     "period":                      "int8",
     "scoreHome":                   "int16",
@@ -40,6 +40,7 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     "away_in_penalty":             "bool",
     "home_timeouts_remaining":     "int8",
     "away_timeouts_remaining":     "int8",
+    "gameId":                      "str",
     })
     pbp["home_possession"] = pbp["home_possession"].astype("boolean")  # nullable bool
     return pbp
