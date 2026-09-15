@@ -13,10 +13,7 @@ def add_possession(df: pd.DataFrame) -> None:
 
         action_type = row["actionType"]
 
-        if action_type == "Jump Ball":
-            home_possession = int(bool(row["is_home_event"]))
-
-        elif action_type == "Rebound":
+        if action_type == "Rebound":
             home_possession = int(bool(row["is_home_event"]))
 
         elif action_type == "Turnover":

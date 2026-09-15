@@ -40,9 +40,12 @@ def read_csv(path, **kwargs):
         raise FileNotFoundError(f"CSV file not found at {path}")
     if not path.is_file():
         raise ValueError(f"Path is not a file: {path}")
-    
+
+    dtype = kwargs.pop("dtype", {}) or {}
+    dtype = {"GAME_ID": str, "gameId": str, **dtype}
+
     try:
-        return pd.read_csv(path, **kwargs)
+        return pd.read_csv(path, dtype=dtype, **kwargs)
     except Exception as e:
         raise ValueError(f"Error reading CSV at {path} to dataFrame: {e}")
     

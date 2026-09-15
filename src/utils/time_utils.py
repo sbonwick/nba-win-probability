@@ -12,13 +12,14 @@ def get_period_length(period:int) -> float:
     else:
         return 5 * 60
 
+
 def get_gametime_elapsed(period:int, clock:str) -> float:
     period_length = get_period_length(period)
     time_remaining = parse_clock_to_seconds(clock)
     if period <= 4:
-        return 48*60 - (period_length * (period - 1) + time_remaining)
+        return period_length * (period-1) + (period_length - time_remaining)
     else:
-        return 5 * 60 - time_remaining
+        return 48 * 60 + (period - 5) * 5*60 + period_length - time_remaining
 
 def get_gametime_remaining(period:int, clock:str) -> float:
     period_length = get_period_length(period)

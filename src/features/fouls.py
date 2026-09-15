@@ -4,7 +4,6 @@ COUNTABLE_FOULS = [
     "Shooting",
     "Personal",
     "Loose Ball",
-    "Offensive",
     "Personal Take",
     "Offensive Charge",
     "Away From Play",
