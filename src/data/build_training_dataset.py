@@ -12,11 +12,11 @@ logger = get_logger(__name__)
 PARQUET_SCHEMA = pa.schema(
     [pa.field("gameId",pa.string())] 
     + [pa.field(col,pa.int64()) for col in INTEGER_COLUMNS]
-    + [pa.field(col,pa.float64) for col in FLOAT_COLUMNS]
+    + [pa.field(col,pa.float64()) for col in FLOAT_COLUMNS]
 )
 
 def get_game_files(seasons: list[str]) -> list[Path]:
-    game_files = list[Path] = []
+    game_files :list[Path] = []
     for season in seasons:
         season_dir = INTERIM_DIR/season
         if not season_dir.exists():
@@ -100,9 +100,9 @@ def write_divided_parquet(data_type:str,seasons: list[str]) -> None:
 
 
 def main():
-    write_divided_parquet("Training",TRAINING_SEASONS)
-    write_divided_parquet("Validation",VALIDATION_SEASONS)
-    write_divided_parquet("Testing",TEST_SEASONS)
+    write_divided_parquet("training",TRAINING_SEASONS)
+    write_divided_parquet("validation",VALIDATION_SEASONS)
+    write_divided_parquet("testing",TEST_SEASONS)
 
 
 if __name__ == "__main__":
