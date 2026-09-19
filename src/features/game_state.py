@@ -102,3 +102,8 @@ def process_box_score(box_score: pd.DataFrame) -> pd.Series:
     frame["home_won"] = int(frame["home_won"])
 
     return frame
+
+def add_games_played(frame: pd.DataFrame) -> pd.DataFrame:
+    frame["home_games_played"] = frame["home_wins"] + frame["home_losses"]
+    frame["away_games_played"] = frame["away_wins"] + frame["away_losses"]
+    return frame

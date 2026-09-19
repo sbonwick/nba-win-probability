@@ -31,6 +31,25 @@ CSV_COLUMNS = ["gameId","period","scoreHome","scoreAway","home_wins","home_losse
                "home_team_fouls_period","away_team_fouls_period","home_in_penalty","away_in_penalty","home_possession","home_timeouts_remaining","away_timeouts_remaining",
                "home_win_pct","away_win_pct","win_pct_diff","is_overtime"]
 
+BASELINE_FEATURES = [
+    "period",
+    "scoreDifferential",
+    "home_games_played",
+    "away_games_played",
+    "home_win_pct",
+    "away_win_pct",
+    "playoffs",
+    "time_remaining",
+    "home_team_fouls_period",
+    "away_team_fouls_period",
+    "home_in_penalty",
+    "away_in_penalty",
+    "home_possession",
+    "home_timeouts_remaining",
+    "away_timeouts_remaining",
+    "is_overtime",
+]
+
 INTEGER_COLUMNS = [
     "period",
     "scoreHome",
