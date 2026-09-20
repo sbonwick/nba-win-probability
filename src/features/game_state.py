@@ -29,6 +29,7 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
 
     pbp["win_pct_diff"] = pbp["home_win_pct"] - pbp["away_win_pct"]
     pbp["is_overtime"] = (pbp["period"] > 4)
+    add_games_played(pbp)
     pbp = pbp.astype({
     "period":                      "int8",
     "scoreHome":                   "int16",
@@ -36,8 +37,10 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     "home_wins":                   "int16",
     "home_losses":                 "int16",
     "home_won":                    "bool",
+    "home_games_played":           "int16",
     "away_wins":                   "int16",
     "away_losses":                 "int16",
+    "away_games_played":           "int16",
     "playoffs":                    "bool",
     "time_elapsed":                "int16",
     "time_remaining":              "int16",
@@ -103,7 +106,7 @@ def process_box_score(box_score: pd.DataFrame) -> pd.Series:
 
     return frame
 
-def add_games_played(frame: pd.DataFrame) -> pd.DataFrame:
+def add_games_played(frame: pd.DataFrame) -> None:
     frame["home_games_played"] = frame["home_wins"] + frame["home_losses"]
     frame["away_games_played"] = frame["away_wins"] + frame["away_losses"]
-    return frame
+    return

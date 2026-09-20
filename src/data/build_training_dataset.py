@@ -1,4 +1,4 @@
-from src.data.data_constants import TRAINING_SEASONS, VALIDATION_SEASONS, TEST_SEASONS, GAME_TYPES, CSV_COLUMNS,INTEGER_COLUMNS,FLOAT_COLUMNS
+from src.data.data_constants import TRAINING_SEASONS, VALIDATION_SEASONS, TEST_SEASONS, CSV_COLUMNS,INTEGER_COLUMNS,FLOAT_COLUMNS
 from src.config import PROCESSED_DIR, INTERIM_DIR
 from src.utils.logging_utils import get_logger
 
