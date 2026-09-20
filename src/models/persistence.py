@@ -6,7 +6,7 @@ from torch import nn
 
 from src.data.data_constants import BASELINE_FEATURES
 from src.config import MODELS_DIR
-from src.models.win_probability.model import WinProbabilityModel
+from src.models.model import WinProbabilityModel
 
 MODEL_FILENAME = "win_probability_network.pt"
 IMPUTER_FILENAME = "win_probability_imputer.joblib"

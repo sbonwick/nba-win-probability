@@ -5,6 +5,7 @@ from src.models.preprocessing import (
     fit_preprocesser,
     transform_features,
     make_loader,
+    add_derived_features
 )
 from src.models.model import WinProbabilityModel
 from src.models.training import fit_model
@@ -17,14 +18,14 @@ logger = get_logger(__name__)
 
 
 def main() -> None:
-    
+
     set_seed(RANDOM_SEED)
     device = get_device()
     logger.info("Training on device: %s", device)
 
-    train_frame = load_split("train")
-    validation_frame = load_split("validation")
-    test_frame = load_split("test")
+    train_frame = add_derived_features(load_split("train"))
+    validation_frame = add_derived_features(load_split("validation"))
+    test_frame = add_derived_features(load_split("test"))
 
     imputer, scaler = fit_preprocesser(train_frame)
 
