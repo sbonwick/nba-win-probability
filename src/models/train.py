@@ -1,42 +1,54 @@
-from pathlib import Path
-import json
-
-import joblib
-import numpy as np
-import pandas as pd
-import torch
-
-from sklearn.impute import SimpleImputer
-from sklearn.metrics import brier_score_loss, log_loss, roc_auc_score
-from sklearn.preprocessing import StandardScaler
-from torch import nn
-from torch.utils.data import DataLoader, TensorDataset
-
-from src.utils.logging_utils import get_logger
+from src.models.config import TARGET_LABEL, RANDOM_SEED, BATCH_SIZE
+from src.models.torch_utils import set_seed, get_device
+from src.models.preprocessing import (
+    load_split,
+    fit_preprocesser,
+    transform_features,
+    make_loader,
+)
+from src.models.model import WinProbabilityModel
+from src.models.training import fit_model
+from src.models.evaluation import predict_probability, calculate_metrics
+from src.models.persistence import save_weights
 from src.data.data_constants import BASELINE_FEATURES
-from src.features.game_state import add_games_played
-from src.config import PROCESSED_DIR, MODELS_DIR
+from src.utils.logging_utils import get_logger
 
-TARGET_COLUMN = "home_won"
-RANDOM_SEED = 42
-BATCH_SIZE = 4096
-LEARNING_RATE = 1e-3
-WEIGHT_DECAY = 1e-4
-MAX_EPOCHS = 50
-PATIENCE = 5
+logger = get_logger(__name__)
 
-def set_seed(seed: int):
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
 
-def get_device() -> torch.device:
-    if torch.backends.mps.is_available():
-        return torch.device("mps")
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    return torch.device("cpu")
+def main() -> None:
+    set_seed(RANDOM_SEED)
+    device = get_device()
+    logger.info("Training on device: %s", device)
 
-def load_split(data_type: str) -> pd.DataFrame:
-    return pd.read_parquet(PROCESSED_DIR/f"{data_type}.parquet")
+    train_frame = load_split("train")
+    validation_frame = load_split("validation")
+    test_frame = load_split("test")
+
+    imputer, scaler = fit_preprocesser(train_frame)
+
+    train_features = transform_features(train_frame, imputer, scaler)
+    validation_features = transform_features(validation_frame, imputer, scaler)
+    test_features = transform_features(test_frame, imputer, scaler)
+
+    train_targets = train_frame[TARGET_LABEL].to_numpy(dtype="float32")
+    validation_targets = validation_frame[TARGET_LABEL].to_numpy(dtype="float32")
+    test_targets = test_frame[TARGET_LABEL].to_numpy(dtype="float32")
+
+    training_loader = make_loader(train_features, train_targets, BATCH_SIZE, shuffle=True)
+    validation_loader = make_loader(validation_features, validation_targets, BATCH_SIZE, shuffle=False)
+    test_loader = make_loader(test_features, test_targets, BATCH_SIZE, shuffle=False)
+
+    model = WinProbabilityModel(input_size=len(BASELINE_FEATURES))
+    model = fit_model(model, training_loader, validation_loader, validation_targets, device)
+
+    # Final, one-time evaluation on data the model and early-stopping logic never saw
+    test_probabilities = predict_probability(model, test_loader, device)
+    test_metrics = calculate_metrics(test_targets, test_probabilities)
+    logger.info("Final held-out test metrics: %s", test_metrics)
+
+    save_weights(model, imputer, scaler)
+
+
+if __name__ == "__main__":
+    main()
