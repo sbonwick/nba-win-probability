@@ -17,6 +17,7 @@ logger = get_logger(__name__)
 
 
 def main() -> None:
+    
     set_seed(RANDOM_SEED)
     device = get_device()
     logger.info("Training on device: %s", device)
