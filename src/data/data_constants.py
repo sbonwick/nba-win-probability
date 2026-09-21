@@ -31,17 +31,46 @@ VALIDATION_SEASONS = ["2022-23","2023-24","2024-25"]
 
 TEST_SEASONS = ["2025-26"]
 
-CSV_COLUMNS = ["gameId","period","scoreHome","scoreAway","home_wins","home_losses","home_won","away_wins","away_losses","playoffs","time_elapsed","time_remaining","scoreDifferential",
-               "home_team_fouls_period","away_team_fouls_period","home_in_penalty","away_in_penalty","home_possession","home_timeouts_remaining","away_timeouts_remaining",
-               "home_win_pct","away_win_pct","win_pct_diff","is_overtime"]
+CSV_COLUMNS = [
+    "gameId",
+    "period",
+    "scoreHome",
+    "scoreAway",
+    "home_wins",
+    "home_losses",
+    "home_won",
+    "home_games_played",
+    "away_wins",
+    "away_losses",
+    "away_games_played",
+    "playoffs",
+    "time_elapsed",
+    "time_remaining",
+    "scoreDifferential",
+    "score_time_relationship",
+    "home_team_fouls_period",
+    "away_team_fouls_period",
+    "home_in_penalty",
+    "away_in_penalty",
+    "home_possession",
+    "home_timeouts_remaining",
+    "away_timeouts_remaining",
+    "home_win_pct",
+    "away_win_pct",
+    "win_pct_diff",
+    "home_shrunk_win_pct",
+    "away_shrunk_win_pct",
+    "shrunk_win_pct_diff",
+    "is_overtime",
+]
 
 BASELINE_FEATURES = [
     "period",
     "scoreDifferential",
     "home_games_played",
     "away_games_played",
-    "home_win_pct",
-    "away_win_pct",
+    "home_shrunk_win_pct",
+    "away_shrunk_win_pct",
     "playoffs",
     "time_remaining",
     "home_team_fouls_period",
@@ -53,7 +82,6 @@ BASELINE_FEATURES = [
     "away_timeouts_remaining",
     "is_overtime",
     "score_time_relationship",
-    "possession_score_relationship",
 ]
 
 INTEGER_COLUMNS = [
@@ -63,8 +91,10 @@ INTEGER_COLUMNS = [
     "home_wins",
     "home_losses",
     "home_won",
+    "home_games_played",
     "away_wins",
     "away_losses",
+    "away_games_played",
     "playoffs",
     "scoreDifferential",
     "home_team_fouls_period",
@@ -76,10 +106,15 @@ INTEGER_COLUMNS = [
     "away_timeouts_remaining",
     "is_overtime",
 ]
+
 FLOAT_COLUMNS = [
     "time_elapsed",
     "time_remaining",
+    "score_time_relationship",
     "home_win_pct",
     "away_win_pct",
     "win_pct_diff",
+    "home_shrunk_win_pct",
+    "away_shrunk_win_pct",
+    "shrunk_win_pct_diff",
 ]

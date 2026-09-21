@@ -4,8 +4,7 @@ from src.models.preprocessing import (
     load_split,
     fit_preprocesser,
     transform_features,
-    make_loader,
-    add_derived_features
+    make_loader
 )
 from src.models.model import WinProbabilityModel
 from src.models.training import fit_model
@@ -23,9 +22,9 @@ def main() -> None:
     device = get_device()
     logger.info("Training on device: %s", device)
 
-    train_frame = add_derived_features(load_split("training"))
-    validation_frame = add_derived_features(load_split("validation"))
-    test_frame = add_derived_features(load_split("testing"))
+    train_frame = load_split("training")
+    validation_frame = load_split("validation")
+    test_frame = load_split("testing")
 
     imputer, scaler = fit_preprocesser(train_frame)
 

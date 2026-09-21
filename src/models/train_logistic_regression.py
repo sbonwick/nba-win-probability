@@ -5,7 +5,6 @@ from src.data.data_constants import BASELINE_FEATURES
 from src.models.config import RANDOM_SEED, TARGET_LABEL
 from src.models.evaluation import calculate_metrics
 from src.models.preprocessing import (
-    add_derived_features,
     fit_preprocesser,
     load_split,
     transform_features,
@@ -41,9 +40,9 @@ def log_coefficients(model: LogisticRegression) -> None:
 
 
 def main() -> None:
-    train_frame = add_derived_features(load_split("training"))
-    validation_frame = add_derived_features(load_split("validation"))
-    test_frame = add_derived_features(load_split("testing"))
+    train_frame = load_split("training")
+    validation_frame = load_split("validation")
+    test_frame = load_split("testing")
 
     imputer, scaler = fit_preprocesser(train_frame)
 

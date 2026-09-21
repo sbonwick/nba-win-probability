@@ -7,7 +7,7 @@ import torch
 from src.config import PROCESSED_DIR, REPORTS_DIR
 from src.data.data_constants import BASELINE_FEATURES
 from src.models.model import WinProbabilityModel
-from src.models.preprocessing import add_derived_features, transform_features
+from src.models.preprocessing import transform_features
 from src.models.persistence import NN_DIR,NN_MODEL_FILENAME,NN_IMPUTER_FILENAME,NN_SCALER_FILENAME
 from src.models.torch_utils import get_device
 from src.utils.logging_utils import get_logger
@@ -37,7 +37,7 @@ def load_game_frame(split_type: str, game_id: str) -> pd.DataFrame:
 
     frame["gameId"] = frame["gameId"].astype("string")
     frame = frame.sort_values(["period","time_elapsed"],kind = "stable").reset_index(drop=True)
-    return add_derived_features(frame)
+    return frame
 
 def load_model_and_preprocess(device: torch.device) -> tuple[WinProbabilityModel,object,object]:
     checkpoint = torch.load(NN_DIR/NN_MODEL_FILENAME,map_location=device,weights_only=True)
