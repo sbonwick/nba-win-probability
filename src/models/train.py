@@ -23,9 +23,9 @@ def main() -> None:
     device = get_device()
     logger.info("Training on device: %s", device)
 
-    train_frame = add_derived_features(load_split("train"))
+    train_frame = add_derived_features(load_split("training"))
     validation_frame = add_derived_features(load_split("validation"))
-    test_frame = add_derived_features(load_split("test"))
+    test_frame = add_derived_features(load_split("testing"))
 
     imputer, scaler = fit_preprocesser(train_frame)
 

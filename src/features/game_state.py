@@ -2,6 +2,7 @@ from src.utils.io import read_csv
 from src.data.cache import boxScorePath, pbpPath
 import src.utils.time_utils as time_utils
 import pandas as pd
+import numpy as np
 from src.features.possession import add_possession
 from src.features.fouls import add_foul_features
 from src.features.timeouts import add_timeout_features
@@ -30,6 +31,7 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     pbp["win_pct_diff"] = pbp["home_win_pct"] - pbp["away_win_pct"]
     pbp["is_overtime"] = (pbp["period"] > 4)
     add_games_played(pbp)
+    add_score_time_relationship(pbp)
     pbp = pbp.astype({
     "period":                      "int8",
     "scoreHome":                   "int16",
@@ -45,6 +47,7 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     "time_elapsed":                "int16",
     "time_remaining":              "int16",
     "scoreDifferential":           "int16",
+    "score_time_relationship":     "float32",
     "home_team_fouls_period":      "int8",
     "away_team_fouls_period":      "int8",
     "home_in_penalty":             "bool",
@@ -110,3 +113,8 @@ def add_games_played(frame: pd.DataFrame) -> None:
     frame["home_games_played"] = frame["home_wins"] + frame["home_losses"]
     frame["away_games_played"] = frame["away_wins"] + frame["away_losses"]
     return
+
+def add_score_time_relationship(frame: pd.DataFrame) -> None:
+    frame["score_time_relationship"] = (
+        frame["scoreDifferential"] / np.sqrt(frame["time_remaining"] + 1)
+    )

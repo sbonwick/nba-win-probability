@@ -10,4 +10,4 @@ LEARNING_RATE = 1e-3
 # This shrinks larger weights to prevent overfitting during training
 WEIGHT_DECAY = 1e-4
 MAX_EPOCHS = 50
-PATIENCE = 5
+PATIENCE = 10

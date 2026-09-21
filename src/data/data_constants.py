@@ -48,6 +48,7 @@ BASELINE_FEATURES = [
     "home_timeouts_remaining",
     "away_timeouts_remaining",
     "is_overtime",
+    "score_time_relationship",
 ]
 
 INTEGER_COLUMNS = [
@@ -78,4 +79,5 @@ FLOAT_COLUMNS = [
     "home_win_pct",
     "away_win_pct",
     "win_pct_diff",
+    "score_time_relationship",
 ]
