@@ -7,6 +7,9 @@ from src.features.possession import add_possession
 from src.features.fouls import add_foul_features
 from src.features.timeouts import add_timeout_features
 
+WIN_PCT_PRIOR_GAMES = 10
+LEAGUE_AVERAGE_WIN_PCT = 0.5
+
 def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     box_score = read_csv(boxScorePath(season, game_id, season_type))
     pbp = read_csv(pbpPath(season, game_id, season_type))
@@ -14,6 +17,7 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     box_score_series = process_box_score(box_score)
     for col,value in box_score_series.items():
         pbp[col] = value
+    convert_to_pregame_records(pbp)
     get_event_side(pbp)
     pbp["playoffs"] = 1 if season_type == "Playoffs" else 0
     add_time_features(pbp)
@@ -30,6 +34,9 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
 
     pbp["win_pct_diff"] = pbp["home_win_pct"] - pbp["away_win_pct"]
     pbp["is_overtime"] = (pbp["period"] > 4)
+    add_games_played(pbp)
+    add_adjusted_win_percentages(pbp)
+    add_score_time_relationship(pbp)
     pbp = pbp.astype({
     "period":                      "int8",
     "scoreHome":                   "int16",
@@ -37,12 +44,15 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     "home_wins":                   "int16",
     "home_losses":                 "int16",
     "home_won":                    "bool",
+    "home_games_played":           "int16",
     "away_wins":                   "int16",
     "away_losses":                 "int16",
+    "away_games_played":           "int16",
     "playoffs":                    "bool",
     "time_elapsed":                "int16",
     "time_remaining":              "int16",
     "scoreDifferential":           "int16",
+    "score_time_relationship":     "float32",
     "home_team_fouls_period":      "int8",
     "away_team_fouls_period":      "int8",
     "home_in_penalty":             "bool",
@@ -53,10 +63,22 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     "home_win_pct":                "float32",
     "away_win_pct":                "float32",
     "win_pct_diff":                "float32",
+    "home_shrunk_win_pct":         "float32",
+    "away_shrunk_win_pct":         "float32",
+    "shrunk_win_pct_diff":         "float32",
     "is_overtime":                 "bool",
     })
-    pbp["home_possession"] = pbp["home_possession"].astype("boolean")  # nullable bool
+    pbp["home_possession"] = pbp["home_possession"].astype("boolean")
     return pbp
+
+
+def convert_to_pregame_records(frame: pd.DataFrame) -> None:
+    home_won = frame["home_won"].astype("int8")
+
+    frame["home_wins"] -= home_won
+    frame["home_losses"] -= 1 - home_won
+    frame["away_wins"] -= 1 - home_won
+    frame["away_losses"] -= home_won
 
 
 def get_event_side(df: pd.DataFrame) -> None:
@@ -109,11 +131,18 @@ def add_games_played(frame: pd.DataFrame) -> None:
     frame["away_games_played"] = frame["away_wins"] + frame["away_losses"]
     return
 
+def add_adjusted_win_percentages(frame: pd.DataFrame) -> None:
+    frame["home_shrunk_win_pct"] = (
+        frame["home_wins"] + WIN_PCT_PRIOR_GAMES * LEAGUE_AVERAGE_WIN_PCT
+    ) / (frame["home_games_played"] + WIN_PCT_PRIOR_GAMES)
+    frame["away_shrunk_win_pct"] = (
+        frame["away_wins"] + WIN_PCT_PRIOR_GAMES * LEAGUE_AVERAGE_WIN_PCT
+    ) / (frame["away_games_played"] + WIN_PCT_PRIOR_GAMES)
+    frame["shrunk_win_pct_diff"] = (
+        frame["home_shrunk_win_pct"] - frame["away_shrunk_win_pct"]
+    )
+
 def add_score_time_relationship(frame: pd.DataFrame) -> None:
     frame["score_time_relationship"] = (
         frame["scoreDifferential"] / np.sqrt(frame["time_remaining"] + 1)
     )
-
-def add_possession_score_relationship(frame: pd.DataFrame) -> None:
-    signed_possession = frame["home_possession"].map({1: 1, 0: -1})
-    frame["possession_score_relationship"] = signed_possession * frame["scoreDifferential"]
