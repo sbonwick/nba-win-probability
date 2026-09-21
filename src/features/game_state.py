@@ -30,8 +30,6 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
 
     pbp["win_pct_diff"] = pbp["home_win_pct"] - pbp["away_win_pct"]
     pbp["is_overtime"] = (pbp["period"] > 4)
-    add_games_played(pbp)
-    add_score_time_relationship(pbp)
     pbp = pbp.astype({
     "period":                      "int8",
     "scoreHome":                   "int16",
@@ -39,15 +37,12 @@ def prepare_tables(game_id: str, season_type: str, season: str) -> pd.DataFrame:
     "home_wins":                   "int16",
     "home_losses":                 "int16",
     "home_won":                    "bool",
-    "home_games_played":           "int16",
     "away_wins":                   "int16",
     "away_losses":                 "int16",
-    "away_games_played":           "int16",
     "playoffs":                    "bool",
     "time_elapsed":                "int16",
     "time_remaining":              "int16",
     "scoreDifferential":           "int16",
-    "score_time_relationship":     "float32",
     "home_team_fouls_period":      "int8",
     "away_team_fouls_period":      "int8",
     "home_in_penalty":             "bool",
@@ -118,3 +113,7 @@ def add_score_time_relationship(frame: pd.DataFrame) -> None:
     frame["score_time_relationship"] = (
         frame["scoreDifferential"] / np.sqrt(frame["time_remaining"] + 1)
     )
+
+def add_possession_score_relationship(frame: pd.DataFrame) -> None:
+    signed_possession = frame["home_possession"].map({1: 1, 0: -1})
+    frame["possession_score_relationship"] = signed_possession * frame["scoreDifferential"]

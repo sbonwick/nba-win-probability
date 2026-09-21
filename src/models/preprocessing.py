@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from src.data.data_constants import BASELINE_FEATURES
 from src.config import PROCESSED_DIR
-from src.features.game_state import add_games_played, add_score_time_relationship
+from src.features.game_state import add_games_played, add_score_time_relationship, add_possession_score_relationship
 
 
 def load_split(data_type: str) -> pd.DataFrame:
@@ -60,5 +60,7 @@ def add_derived_features(frame: pd.DataFrame) -> pd.DataFrame:
         add_games_played(frame)
     if "score_time_relationship" not in frame.columns:
         add_score_time_relationship(frame)
+    if "possession_score_relationship" not in frame.columns:
+        add_possession_score_relationship(frame)
     return frame
     

@@ -30,7 +30,7 @@ def save_weights(model: nn.Module, imputer: SimpleImputer, scaler: StandardScale
 
 # Counterpart to save_weights - rebuilds the model architecture, loads its trained weights, and
 # reloads the matching imputer/scaler so inference uses the exact preprocessing the model was
-# trained on. This was missing from the original implementation.
+# trained on.
 def load_artifacts(device: torch.device) -> tuple[nn.Module, SimpleImputer, StandardScaler]:
     checkpoint = torch.load(MODELS_DIR / MODEL_FILENAME, map_location=device)
 

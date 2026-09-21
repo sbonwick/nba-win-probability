@@ -1,4 +1,6 @@
 SEASONS = [
+    "2013-14",
+    "2014-15",
     "2015-16",
     "2016-17",
     "2017-18",
@@ -14,22 +16,24 @@ SEASONS = [
 
 GAME_TYPES = ["Regular Season", "Playoffs"]
 
-TRAINING_SEASONS = [    "2015-16",
+TRAINING_SEASONS = [ "2013-14",
+    "2014-15",
+    "2015-16",
     "2016-17",
     "2017-18",
     "2018-19",
     "2019-20",
     "2020-21",
     "2021-22",
-    "2022-23"]
+    ]
 
-VALIDATION_SEASONS = ["2023-24","2024-25"]
+VALIDATION_SEASONS = ["2022-23","2023-24","2024-25"]
 
-TEST_SEASONS = ["2024-25"]
+TEST_SEASONS = ["2025-26"]
 
 CSV_COLUMNS = ["gameId","period","scoreHome","scoreAway","home_wins","home_losses","home_won","away_wins","away_losses","playoffs","time_elapsed","time_remaining","scoreDifferential",
                "home_team_fouls_period","away_team_fouls_period","home_in_penalty","away_in_penalty","home_possession","home_timeouts_remaining","away_timeouts_remaining",
-               "home_win_pct","away_win_pct","win_pct_diff","is_overtime","home_games_played","away_games_played"]
+               "home_win_pct","away_win_pct","win_pct_diff","is_overtime"]
 
 BASELINE_FEATURES = [
     "period",
@@ -49,6 +53,7 @@ BASELINE_FEATURES = [
     "away_timeouts_remaining",
     "is_overtime",
     "score_time_relationship",
+    "possession_score_relationship",
 ]
 
 INTEGER_COLUMNS = [
@@ -70,8 +75,6 @@ INTEGER_COLUMNS = [
     "home_timeouts_remaining",
     "away_timeouts_remaining",
     "is_overtime",
-    "home_games_played",
-    "away_games_played"
 ]
 FLOAT_COLUMNS = [
     "time_elapsed",
@@ -79,5 +82,4 @@ FLOAT_COLUMNS = [
     "home_win_pct",
     "away_win_pct",
     "win_pct_diff",
-    "score_time_relationship",
 ]
