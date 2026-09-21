@@ -16,18 +16,21 @@ logger = get_logger(__name__)
 
 
 C = 1.0
-
+LIN_REG_DIR = MODELS_DIR/"logistic_regression"
+LIN_REG_MODEL = "logistic_regression.joblib"
+LIN_REG_IMP = "logistic_regression_imputer.joblib"
+LIN_REG_SCALER = "logistic_regression_scaler.joblib"
 
 def save_artifacts(
     model: LogisticRegression,
     imputer,
     scaler,
 ) -> None:
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    LIN_REG_DIR.mkdir(parents=True, exist_ok=True)
 
-    joblib.dump(model, MODELS_DIR / "logistic_regression.joblib")
-    joblib.dump(imputer, MODELS_DIR / "logistic_regression_imputer.joblib")
-    joblib.dump(scaler, MODELS_DIR / "logistic_regression_scaler.joblib")
+    joblib.dump(model, LIN_REG_DIR/ LIN_REG_MODEL)
+    joblib.dump(imputer, LIN_REG_DIR/ LIN_REG_IMP)
+    joblib.dump(scaler, LIN_REG_DIR / LIN_REG_SCALER)
 
     logger.info("Saved logistic-regression artifacts to %s", MODELS_DIR)
 
