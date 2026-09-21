@@ -69,6 +69,8 @@ BASELINE_FEATURES = [
     "scoreDifferential",
     "home_games_played",
     "away_games_played",
+    "home_win_pct",
+    "away_win_pct",
     "home_shrunk_win_pct",
     "away_shrunk_win_pct",
     "playoffs",
